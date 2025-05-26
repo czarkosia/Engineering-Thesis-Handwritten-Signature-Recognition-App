@@ -29,6 +29,16 @@ def show_data(sample: np.ndarray):
     ax.yaxis.set_ticks([np.min(y_coord), np.max(y_coord)])
     fig.show()
 
+def pad_sequences(dataset: list[np.ndarray]) -> np.ndarray:
+    max_length = np.max([seq.shape[1] for seq in dataset])
+    print(max_length)
+    new_dataset = np.empty((len(dataset), dataset[0].shape[0], max_length))
+    print(new_dataset.shape)
+    for i, seq in enumerate(dataset):
+        new_dataset[i, :, :seq.shape[1]] = seq
+    print(new_dataset.shape)
+    return new_dataset
+
 if __name__ == '__main__':
     samples = load_data()
     show_data(samples[0])
