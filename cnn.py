@@ -1,81 +1,65 @@
 import torch
 import torch.nn as nn
-import torchvision.transforms as transforms
-import torchvision.datasets as datasets
-import torchvision.models as models
 import numpy as np
-from sympy.physics.quantum.gate import normalized
-from torch.ao.quantization.utils import activation_dtype
 
 import data
 
-# DATAFILE_DIR = 'Task1/U1S1.TXT'
+class CnnModel:
+    def __init__(self, in_channels):
+        self.cnn = nn.Sequential(
+            nn.Conv1d(in_channels, 64, kernel_size=5, padding=2),
+            nn.ReLU(),
+            nn.MaxPool1d(2),
 
-# class CNNmodel():
-#     def __init__(self):
-#         self.cnn = nn.Sequential(
-#             nn.Conv1d(4, 64, kernel_size=5, padding=2),
-#             nn.ReLU(),
-#             nn.MaxPool1d(2),
-#             nn.Conv1d(64, 128, kernel_size=5, padding=2),
-#             nn.ReLU(),
-#             nn.MaxPool1d(2),
-#             nn.Conv1d(128, 256, kernel_size=3, padding=1),
-#             nn.ReLU(),
-#             nn.MaxPool1d(2),
-#         )
-#         self.embedding = nn.Sequential(
-#             nn.Flatten(),
-#             nn.Linear(256, 128),
-#             nn.ReLU(),
-#             nn.BatchNorm1d(128),
-#         )
-#
-#     def forward(self, x):
-#         """
-#
-#         :param x: shape (batch_size, seq_len, 4)
-#         :return:
-#         """
-#         x = x.transpose(1, 2)
-#         self.cnn.eval()
-#         x = self.cnn(x)
-#         x = self.embedding(x)
-#         return x
+            nn.Conv1d(64, 128, kernel_size=5, padding=2),
+            nn.ReLU(),
+            nn.MaxPool1d(2),
 
-if __name__ == "__main__":
-    signatures_data = data.load_data()
-    np.random.shuffle(signatures_data)
-    # sequence = signatures_data[0]
+            nn.Conv1d(128, 256, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool1d(2),
 
-    normalized_data = []
-    for sequence in signatures_data:
-        x = sequence[:, 0]
-        y = sequence[:, 1]
-        t = sequence[:, 2]
-        pen = sequence[:, 3]
+            nn.Dropout(0.5),
+            nn.AdaptiveAvgPool1d(1),
+            nn.Flatten(),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.BatchNorm1d(128),
+            nn.Dropout(0.5),
+        )
+        self.cnn_output = None
 
-        # Normalizacja
-        x = (x - np.min(x)) / (np.ptp(x) + 1e-8)
-        y = (y - np.min(y)) / (np.ptp(y) + 1e-8)
-        dt = np.diff(t, prepend=t[0]) / (np.ptp(t) + 1e-8)
+    def forward(self, samples, samples_info):
+        cnn_output = self.cnn(samples).detach().numpy()
+        print(cnn_output.shape)
+        pairs, labels, cl = self.generate_pairs(cnn_output, samples_info)
+        print(labels[0], cl[0])
+        min_idx = cl.index(min(cl))
+        max_idx = cl.index(max(cl))
+        print('CL min:', np.min(cl), labels[min_idx])
+        print('CL max:', np.max(cl), labels[max_idx])
 
-        sequence = np.stack([x, y, dt, pen], axis=0)
-        print(sequence.shape)
-        normalized_data.append(sequence)
-    normalized_data = data.pad_sequences(normalized_data)
-    input_data = torch.tensor(normalized_data, dtype=torch.float32)
-    print(input_data.shape)
-    ...
-    # sequence = sequence.unsqueeze(0)
-    #
-    cnn = nn.Sequential(
-        nn.Conv1d(4, 64, kernel_size=3, padding=1),
-        nn.ReLU(),
-        nn.BatchNorm1d(64),
-        nn.MaxPool1d(2),
-    )
-    print(cnn)
+    def generate_pairs(self, samples, samples_info):
+        pairs = []
+        labels = []
+        cl = []
+        for i, seq1 in enumerate(samples):
+            for j, seq2 in enumerate(samples):
+                if i != j:
+                    pairs.append((seq1, seq2))
+                    if (samples_info[j, 0] == samples_info[i, 0]
+                            and samples_info[j, 1] == 1
+                            and samples_info[i, 1] == 1):
+                        y = 1
+                    else:
+                        y = 0
+                    labels.append(y)
+                    cl.append(CnnModel.contrastive_loss(seq1, seq2, y))
 
-    output = cnn.forward(input_data)
-    print(output)
+        return pairs, labels, cl
+
+
+    @staticmethod
+    def contrastive_loss(seq1, seq2, y):
+        return y*np.linalg.norm(seq1-seq2) + (1 - y)*np.max([0, 1 - np.linalg.norm(seq1 - seq2)]) ** 2
+
