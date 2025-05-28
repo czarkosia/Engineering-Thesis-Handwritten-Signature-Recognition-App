@@ -6,6 +6,7 @@ import cnn
 
 if __name__ == "__main__":
     signatures_data, data_info = data.load_svc2004()
+    data.show_sample(signatures_data[0])
     padded = data.pad_sequences(signatures_data)
     normalized = data.normalize(padded)
     train_data, test_data, train_info, test_info = data.train_test_split(normalized, data_info)

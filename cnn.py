@@ -4,10 +4,11 @@ import numpy as np
 
 import data
 
-class CnnModel:
+class CnnModel(nn.Module):
     def __init__(self, in_channels):
+        super(CnnModel, self).__init__()
         self.cnn = nn.Sequential(
-            nn.Conv1d(in_channels, 64, kernel_size=5, padding=2),
+            nn.Conv1d(1, 16, kernel_size=100, padding='same'),
             nn.ReLU(),
             nn.MaxPool1d(2),
 
@@ -27,17 +28,24 @@ class CnnModel:
             nn.BatchNorm1d(128),
             nn.Dropout(0.5),
         )
+        self.optimizer = torch.optim.Adam(self.parameters(), lr=0.001)
         self.cnn_output = None
 
+    def train(self, input_data, train_info):
+        ...
+
     def forward(self, samples, samples_info):
-        cnn_output = self.cnn(samples).detach().numpy()
+        cnn_output = self.cnn(samples)
         print(cnn_output.shape)
         pairs, labels, cl = self.generate_pairs(cnn_output, samples_info)
         print(labels[0], cl[0])
         min_idx = cl.index(min(cl))
         max_idx = cl.index(max(cl))
-        print('CL min:', np.min(cl), labels[min_idx])
-        print('CL max:', np.max(cl), labels[max_idx])
+        print('CL min:', min(cl), labels[min_idx])
+        print('CL max:', max(cl), labels[max_idx])
+
+    def cl_backward(self):
+        ...
 
     def generate_pairs(self, samples, samples_info):
         pairs = []
@@ -61,5 +69,6 @@ class CnnModel:
 
     @staticmethod
     def contrastive_loss(seq1, seq2, y):
-        return y*np.linalg.norm(seq1-seq2) + (1 - y)*np.max([0, 1 - np.linalg.norm(seq1 - seq2)]) ** 2
+        distance = (seq1 - seq2).pow(2).sum().sqrt()
+        return y*distance + (1 - y)*torch.relu(1 - distance)
 
