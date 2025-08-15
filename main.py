@@ -1,45 +1,34 @@
-import numpy as np
-import torch
+from preprocessing import load_data, resample
 
-import data
-import cnn
+MAX_SEQUENCE_LENGTH = 128
 
 if __name__ == "__main__":
-    signatures_data, data_info = data.load_svc2004()
-    data.show_sample(signatures_data[0])
-    padded = data.pad_sequences(signatures_data)
-    normalized = data.normalize(padded)
-    train_data, test_data, train_info, test_info = data.train_test_split(normalized, data_info)
+    print("Loading data...")
+    signatures_data, data_info = load_data.load_svc2004()
+    print("Data loaded.")
+    print("Resampling...")
+    load_data.show_sample(signatures_data[3])
+    signatures_data = resample.resample_all(signatures_data, MAX_SEQUENCE_LENGTH)
+    load_data.show_sample(signatures_data[3])
 
-    # normalized_data = []
-    # for sequence in signatures_data:
-    #     x = sequence[:, 0]
-    #     y = sequence[:, 1]
-    #     t = sequence[:, 2]
-    #     pen = sequence[:, 3]
+    # padded = data.pad_sequences(signatures_data)
+    # normalized = data.normalize(padded)
+    # train_data, test_data, train_info, test_info = data.train_test_split(normalized, data_info)
     #
-    #     # Normalizacja
-    #     x = (x - np.min(x)) / (np.ptp(x) + 1e-8)
-    #     y = (y - np.min(y)) / (np.ptp(y) + 1e-8)
-    #     dt = np.diff(t, prepend=t[0]) / (np.ptp(t) + 1e-8)
+    # input_data = torch.tensor(train_data, dtype=torch.float32)
     #
-    #     sequence = np.stack([x, y, dt, pen], axis=0)
-    #     print(sequence.shape)
-    #     normalized_data.append(sequence)
-
-    input_data = torch.tensor(train_data, dtype=torch.float32)
-    print(input_data.shape)
-    ...
-    # sequence = sequence.unsqueeze(0)
+    # cnn = cnn.CnnModel(train_data.shape[1])
+    # cnn.train_model(input_data, train_info, 100)
     #
-    # cnn = nn.Sequential(
-    #     nn.Conv1d(4, 64, kernel_size=3, padding=1),
-    #     nn.ReLU(),
-    #     nn.BatchNorm1d(64),
-    #     nn.MaxPool1d(2),
-    # )
-    # print(cnn)
-
-    cnn = cnn.CnnModel(7)
-    output = cnn.forward(input_data, train_info)
-    # print(output.shape)
+    # true_mean = []
+    # false_mean = []
+    # for i in range(test_data.shape[0]):
+    #     for j in range(test_data.shape[0]):
+    #         if j != i:
+    #             test_samples = torch.tensor(np.array([test_data[i],test_data[j]]), dtype=torch.float32)
+    #             if_same = test_info[i][0] == test_info[j][0] and test_info[i][1] == test_info[j][1] == 1
+    #             prediction = cnn.predict(test_samples)
+    #             if if_same: true_mean.append(prediction)
+    #             else: false_mean.append(prediction)
+    # print("Distance for similar samples:", np.mean(true_mean), "std: ", np.std(true_mean))
+    # print("Distance for different samples:", np.mean(false_mean), "std: ", np.std(false_mean))

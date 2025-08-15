@@ -4,10 +4,11 @@ import pandas as pd
 import os
 
 DATABASE_NUMBER = 2 # 1 lub 2
-FILE_DIR = ['Task1/', 'Task2/']
+FILE_DIR = ['csv_datasets/svc2004/Task1/', 'csv_datasets/svc2004/Task2/']
 COLUMN_NAMES = [['x-coord', 'y-coord', 'time stamp', 'button status'],
                 ['x-coord', 'y-coord', 'time stamp', 'button status', 'azimuth', 'altitude', 'pressure']]
 TRAIN_TEST_SPLIT = 0.8
+SAMPLE_LIMIT = 256
 
 def load_svc2004(file_directory: str = FILE_DIR[DATABASE_NUMBER - 1],
                  column_names: list = None):
@@ -39,13 +40,13 @@ def load_svc2004(file_directory: str = FILE_DIR[DATABASE_NUMBER - 1],
 
 def pad_sequences(dataset: list[np.ndarray]) -> np.ndarray:
     assert [seq.shape[0] == len(COLUMN_NAMES[DATABASE_NUMBER - 1]) for seq in dataset]
+
     max_length = np.max([seq.shape[1] for seq in dataset])
-    print(max_length)
     new_dataset = np.empty((len(dataset), dataset[0].shape[0], max_length))
-    print(new_dataset.shape)
+
     for i, seq in enumerate(dataset):
         new_dataset[i, :, :seq.shape[1]] = seq
-    print(new_dataset.shape)
+
     return new_dataset
 
 def normalize(dataset: np.ndarray):
@@ -63,7 +64,6 @@ def normalize(dataset: np.ndarray):
             norm_seq.append(x)
         norm_seq.insert(t_idx, t)
         normalized_dataset[j] = np.array(norm_seq)
-    print(normalized_dataset.shape)
     return normalized_dataset
 
 def train_test_split(dataset: np.ndarray, data_info: np.ndarray,
@@ -121,13 +121,11 @@ def show_sample(sample: np.ndarray):
     fig.show()
     fig.savefig('sample_coords.png')
 
-    print(sample.shape)
-
     t_idx = COLUMN_NAMES[DATABASE_NUMBER - 1].index('time stamp')
     t = sample[:,t_idx] - np.min(sample[:,t_idx])
     plotted = np.array([sample[:,i] for i in range(sample.shape[1]) if i != t_idx]).transpose()
     labels = [COLUMN_NAMES[DATABASE_NUMBER - 1][i] for i in range(sample.shape[1]) if i != t_idx]
-    print(plotted.shape, t.shape)
+
     fig2 = plt.figure()
     axes = fig2.subplots(len(COLUMN_NAMES[DATABASE_NUMBER - 1]) - 1, 1)
     fig2.subplots_adjust(hspace=1)
