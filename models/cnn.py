@@ -4,7 +4,7 @@ import torch.nn as nn
 
 class CnnModel(nn.Module):
     def __init__(self, in_channels):
-        super(CnnModel, self).__init__()
+        super().__init__()
         self.cnn = nn.Sequential(
             nn.Conv1d(in_channels, 64, kernel_size=5, padding=2),
             nn.ReLU(),

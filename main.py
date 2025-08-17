@@ -1,4 +1,8 @@
-from preprocessing import load_data, resample
+from models import cae
+from preprocessing import load_data, resample, normalize
+
+import numpy as np
+import torch
 
 MAX_SEQUENCE_LENGTH = 128
 
@@ -7,19 +11,21 @@ if __name__ == "__main__":
     signatures_data, data_info = load_data.load_svc2004()
     print("Data loaded.")
     print("Resampling...")
-    load_data.show_sample(signatures_data[3])
     signatures_data = resample.resample_all(signatures_data, MAX_SEQUENCE_LENGTH)
-    load_data.show_sample(signatures_data[3])
 
-    # padded = data.pad_sequences(signatures_data)
-    # normalized = data.normalize(padded)
-    # train_data, test_data, train_info, test_info = data.train_test_split(normalized, data_info)
-    #
-    # input_data = torch.tensor(train_data, dtype=torch.float32)
-    #
-    # cnn = cnn.CnnModel(train_data.shape[1])
-    # cnn.train_model(input_data, train_info, 100)
-    #
+
+    padded = load_data.pad_sequences(signatures_data)
+    normalized = normalize.normalize(padded, 2, 7)
+    train_data, test_data, train_info, test_info = load_data.train_test_split(normalized, data_info)
+
+    input_data = torch.tensor(train_data, dtype=torch.float32)
+
+    print("Building model...")
+    print(input_data.size())
+    cae = cae.CaeModel()
+    output = cae.forward(input_data)
+    print(output.size())
+    print("Model built.")
     # true_mean = []
     # false_mean = []
     # for i in range(test_data.shape[0]):

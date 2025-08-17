@@ -1,7 +1,7 @@
 import numpy as np
 
 #Menger curvature
-def calculate_curvature(point_a: tuple[int, int], point_b: tuple[int, int], point_c: tuple[int, int]) -> float:
+def calculate_curvature(point_a, point_b, point_c) -> float:
     dx_ba, dy_ba = point_b[0] - point_a[0], point_b[1] - point_a[1]
     dx_ca, dy_ca = point_c[0] - point_a[0], point_c[1] - point_a[1]
     dx_cb, dy_cb = point_c[0] - point_b[0], point_c[1] - point_b[1]
@@ -16,8 +16,6 @@ def calculate_curvature(point_a: tuple[int, int], point_b: tuple[int, int], poin
 def resample_all(dataset: list[np.ndarray], max_sequence_length: int):
     for j, signature in enumerate(dataset):
         to_delete = signature.shape[1] - max_sequence_length
-        print("max_sequence_length:", max_sequence_length)
-        print("signature.shape:", signature.shape)
         if to_delete <= 0:
             continue
 
