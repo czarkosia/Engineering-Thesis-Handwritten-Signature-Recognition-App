@@ -2,7 +2,6 @@ from PyQt6.QtWidgets import QMainWindow, QApplication, QLabel, QWidget, QVBoxLay
 
 from gui.widgets.signature_canvas import SignatureCanvasWidget
 
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -12,7 +11,7 @@ class MainWindow(QMainWindow):
         self.setGeometry(int(width/2) - 400, int(height/2) - 300, 800, 600)
 
         self.signature_canvas = SignatureCanvasWidget()
-        self.button = QPushButton("Click me")
+        self.button = QPushButton("Clear")
         self.button.clicked.connect(self.signature_canvas.clear)
 
         layout = QVBoxLayout()
