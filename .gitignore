@@ -178,3 +178,6 @@ cython_debug/
 
 # Datasets
 csv_datasets
+
+# Images
+*.png
