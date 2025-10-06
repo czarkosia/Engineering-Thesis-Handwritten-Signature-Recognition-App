@@ -1,0 +1,7 @@
+QPainter {
+    background-color: #FFFFFF
+}
+
+QPen {
+    color: #000000
+}
