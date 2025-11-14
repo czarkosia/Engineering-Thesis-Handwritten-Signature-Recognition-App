@@ -1,4 +1,4 @@
-import sys
+import sys, os
 from PyQt6.QtWidgets import QApplication
 
 from ui import MainWindow

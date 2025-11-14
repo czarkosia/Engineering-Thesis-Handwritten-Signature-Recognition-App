@@ -1,21 +1,22 @@
 import time
 
 from PyQt6.QtCore import QEvent, QSize
-from PyQt6.QtGui import QPainter, QColor, QPaintEvent, QPen, QPixmap
+from PyQt6.QtGui import QPainter, QColor, QPaintEvent, QPen, QPixmap, QResizeEvent, QTabletEvent
 from PyQt6.QtWidgets import QWidget
 
 class SignatureCanvasWidget(QWidget):
     def __init__(self):
         super(SignatureCanvasWidget, self).__init__()
         self.start_time = time.time()
+        self.time_threshold = 10
+
         self.x_coords, self.y_coords = [], []
         self.pressures, self.timestamps = [], []
-        self.setFixedSize(QSize(640, 480))
 
         self.buffer = QPixmap(self.size())
-        self.buffer.fill(QColor(255, 255, 255))
+        self.buffer.fill(QColor("white"))
 
-    def resizeEvent(self, event):
+    def resizeEvent(self, event: QResizeEvent):
         if self.size() != self.buffer.size():
             new_buffer = QPixmap(self.size())
             new_buffer.fill(QColor("white"))
@@ -25,8 +26,8 @@ class SignatureCanvasWidget(QWidget):
             self.buffer = new_buffer
         super().resizeEvent(event)
 
-    def tabletEvent(self, event):
-        if event.type() in (QEvent.Type.TabletMove, QEvent.Type.TabletPress):
+    def tabletEvent(self, event: QTabletEvent):
+        if event.type() in (QEvent.Type.TabletMove, QEvent.Type.TabletPress, QEvent.Type.TabletRelease) or time.time() - self.timestamps[-1] > self.time_threshold:
             print('tabletEvent')
             coords = event.position()
             self.x_coords.append(coords.x())
@@ -58,7 +59,7 @@ class SignatureCanvasWidget(QWidget):
             painter.drawPixmap(0, 0, self.buffer)
         painter.end()
 
-    def save (self):
+    def save (self, filename: str):
         if (not self.x_coords
                 or not self.y_coords
                 or not self.pressures
@@ -67,12 +68,15 @@ class SignatureCanvasWidget(QWidget):
         if not (len(self.x_coords) == len(self.y_coords) == len(self.pressures) == len(self.timestamps)):
             raise Exception("Mismatch between points features")
 
-        # with open(".txt", "a") as f:
-        #     for i in range(len(self.x_coords)):
-        #         x = int(self.x_coords[i])
-        #         y = int(self.y_coords[i])
-        #         line = str(x) + "," + str(y)
-        #         f.write(line)
+        with open(filename, "w") as f:
+            for i in range(len(self.x_coords)):
+                x = int(self.x_coords[i])
+                y = int(self.y_coords[i])
+                timestamp = int(self.timestamps[i] * 1000000)
+                pressure_flag = 1 if self.pressures[i] > 0 else 0
+
+                line = f"{x} {y} {timestamp} {pressure_flag}\n"
+                f.write(line)
         self.clear()
 
     def clear(self):

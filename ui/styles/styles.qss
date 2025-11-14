@@ -1,7 +1,10 @@
-QPainter {
-    background-color: #FFFFFF
+QPushButton {
+    border-radius: 10px;
+    background-color: #000333;
+    padding: 10px;
 }
 
-QPen {
-    color: #000000
+QLineEdit {
+    background-color: #eee;
+    padding: 10px;
 }

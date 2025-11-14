@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import QMainWindow, QApplication, QWidget, QVBoxLayout, QStackedWidget
 
-from ui.widgets import RegisterWidget, StartWidget
+from ui.widgets import RegisterWidget, StartWidget, VerifyWidget, IdentifyWidget
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -21,10 +22,20 @@ class MainWindow(QMainWindow):
         self.stackedWidget.addWidget(self.startWidget)
         self.stackedWidget.setCurrentWidget(self.startWidget)
         self.startWidget.goToRegister.connect(self.switch_to_register)
+        self.startWidget.goToVerify.connect(self.switch_to_verify)
+        self.startWidget.goToIdentify.connect(self.switch_to_identify)
 
         self.registerWidget = RegisterWidget()
         self.stackedWidget.addWidget(self.registerWidget)
         self.registerWidget.goToStart.connect(self.switch_to_start)
+
+        self.verifyWidget = VerifyWidget()
+        self.stackedWidget.addWidget(self.verifyWidget)
+        self.verifyWidget.goToStart.connect(self.switch_to_start)
+
+        self.identifyWidget = IdentifyWidget()
+        self.stackedWidget.addWidget(self.identifyWidget)
+        self.identifyWidget.goToStart.connect(self.switch_to_start)
 
     def switch_to_register(self):
         self.stackedWidget.setCurrentWidget(self.registerWidget)
@@ -35,5 +46,9 @@ class MainWindow(QMainWindow):
         print("Switched to Start")
 
     def switch_to_verify(self):
-        self.stackedWidget.setCurrentWidget(self.registerWidget)
+        self.stackedWidget.setCurrentWidget(self.verifyWidget)
         print("Switched to Verify")
+
+    def switch_to_identify(self):
+        self.stackedWidget.setCurrentWidget(self.identifyWidget)
+        print("Switched to Identify")
